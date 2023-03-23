@@ -1,0 +1,70 @@
+Sub CountWcagOccurrences()
+
+    Dim currentSheet As Worksheet
+    Dim wcagCountsTable As ListObject
+    Dim wcagColumn As Range
+    Dim wcagCell As Range
+    Dim wcagValue As String
+    Dim countRange As Range
+    Dim countValue As Long
+    Dim rowCount As Long
+    
+    
+    ' Set the worksheet and table variables
+    Set currentSheet = ThisWorkbook.Worksheets("Data & chart")
+    Set wcagCountsTable = currentSheet.ListObjects("WCAG_Counts")
+    Set wcagCountsTable = currentSheet.ListObjects("WCAG_Counts")
+    Set wcagColumn = wcagCountsTable.ListColumns("WCAG").DataBodyRange
+    
+    row_number = 112
+    colName = "C"
+    ' Loop through each cell in the WCAG column
+    For Each wcagCell In wcagColumn.Cells
+    
+        ' Get the current WCAG value and set the count range
+        wcagValue = wcagCell.Value
+        ' MsgBox "The value of x is " & wcagValue
+        
+        
+        Set countRange = wcagCell.Offset(0, wcagCountsTable.ListColumns("No of occurence").Index - wcagCell.Column)
+        
+        
+        
+        ' Reset the count value and loop through each sheet in the workbook
+        countValue = 0
+        For Each currentSheet In ThisWorkbook.Worksheets
+        
+            ' Check if the sheet has a column M and loop through each row in that column
+            If Not currentSheet.Columns("G:G") Is Nothing Then
+                rowCount = currentSheet.Cells(currentSheet.Rows.Count, "G").End(xlUp).Row
+                For i = 2 To rowCount
+                    ' If the cell in column M matches the WCAG value, increment the count
+                    If currentSheet.Cells(i, "G").Value = wcagValue Then
+                        ' MsgBox "The value of x is " & currentSheet.Cells(i, "G").Value & wcagValue
+                        countValue = countValue + 1
+                    End If
+                Next i
+            End If
+        Next currentSheet
+        
+        If countValue = 0 Then
+        'Set the cell above to "Success"
+            Range(colName & row_number).Value = "Review"
+        Else
+            'Set the cell above to "Failure"
+            Range(colName & row_number).Value = "Fail"
+        End If
+        
+        row_number = row_number + 1
+        
+        ' Update the count range with the final count value
+        countRange.Value = countValue
+        
+    Next wcagCell
+    
+    wcagCountsTable.Range.AutoFilter Field:=wcagCountsTable.ListColumns("No of occurence").Index, Criteria1:="<>0"
+    
+    Exit Sub
+
+End Sub
+
